@@ -1,7 +1,4 @@
-from core.command_router import CommandRouter
+from core.background_loop import run
 
 if __name__ == "__main__":
-    router = CommandRouter()
-    while True:
-        cmd = input(">> ")
-        router.handle(cmd)
+    run()
