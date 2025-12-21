@@ -1,17 +1,14 @@
-from core.planner import plan
-from core.skill_selector import select_skills
 from core.executor import execute
-from core.evaluator import evaluate
-from core.self_improver import improve
-from memory.short_term import store_task
+from core.log import log
+
 
 class ExecutiveAgent:
-    def interrupt_and_execute(self, command):
-        print("⚡ Interrupt received")
-        store_task(command)
+    def interrupt_and_execute(self, intent: str):
+        log(f"Executing intent: {intent}")
 
-        steps = plan(command)
-        skills = select_skills(steps)
-        result = execute(skills)
-        score = evaluate(result)
-        improve(command, result, score)
+        # TEMP: single-skill mapping (stable)
+        if "monitor" in intent or "research" in intent:
+            return execute("web_research", "https://github.com")
+
+        log("No matching skill for intent")
+        return None
