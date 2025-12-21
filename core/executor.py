@@ -1,16 +1,14 @@
+from core.risk_governor import approve
 from skills.web_research import run as web_research
-SKILL_MAP["web_research"] = web_research from core.risk_governor import approve
-from skills import analyze_system, automate_task, optimize_code
 
-SKILL_MAP = {
-    "analyze_system": analyze_system.run,
-    "automate_task": automate_task.run,
-    "optimize_code": optimize_code.run
-}
+SKILL_MAP = {}
 
-def execute(skills):
-    results = []
-    for skill in skills:
-        approve(0.3)
-        results.append(SKILL_MAP[skill]())
-    return results
+SKILL_MAP["web_research"] = web_research
+
+
+def execute(skill_name, *args, **kwargs):
+    if skill_name not in SKILL_MAP:
+        raise Exception(f"Unknown skill: {skill_name}")
+
+    approve(0.2)
+    return SKILL_MAP[skill_name](*args, **kwargs)
