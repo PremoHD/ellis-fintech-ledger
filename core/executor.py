@@ -1,4 +1,5 @@
-from core.risk_governor import approve
+from skills.web_research import run as web_research
+SKILL_MAP["web_research"] = web_research from core.risk_governor import approve
 from skills import analyze_system, automate_task, optimize_code
 
 SKILL_MAP = {
