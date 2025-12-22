@@ -1,13 +1,21 @@
-from core.kill_switch import kill
 from core.executor import execute
-
+from core.kill_switch import kill
 
 class Router:
     def handle(self, command: str):
         cmd = command.strip().lower()
 
+        if not cmd:
+            return
+
         if cmd in ["go offline", "shutdown", "stop"]:
             kill()
+            return
+
+        if cmd == "help":
+            print("Commands:")
+            print("  research <url>")
+            print("  go offline")
             return
 
         if cmd.startswith("research "):
@@ -16,7 +24,6 @@ class Router:
             print(result[:500])
             return
 
-        print(f"⚠️ Unknown command: {command}")
+        print("⚠️ Unknown command")
 
-
-router = Router() 
+router = Router()
