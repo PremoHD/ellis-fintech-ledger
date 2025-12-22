@@ -1,18 +1,16 @@
-import threading
-from core.background_loop import run as background_run
 from core.router import router
-from core.kill_switch import is_active
 
-def interactive():
-    while is_active():
+def main():
+    print("✅ Agent online. Type 'help' or 'go offline'.")
+    while True:
         try:
-            cmd = input(">> ").strip()
-            if cmd:
-                router.handle(cmd)
+            cmd = input(">> ")
+            router.handle(cmd)
         except KeyboardInterrupt:
+            print("\n🛑 Exiting.")
             break
+        except Exception as e:
+            print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
-    t = threading.Thread(target=background_run, daemon=True)
-    t.start()
-    interactive()
+    main()
