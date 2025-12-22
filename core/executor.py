@@ -1,18 +1,14 @@
-from core.risk_governor import approve
-from skills.web_research import run as web_research
+from skills.web_research import research
 
 SKILL_MAP = {
-    "web_research": web_research
+    "web_research": research
 }
 
-
-def execute(skill_name, *args, **kwargs):
-    # HARD GUARD: only allow strings
-    if not isinstance(skill_name, str):
-        raise TypeError(f"execute() expects str, got {type(skill_name)}")
+def execute(skill_name, *args):
+    if isinstance(skill_name, list):
+        raise ValueError("Skill name must be a string, not a list")
 
     if skill_name not in SKILL_MAP:
-        raise Exception(f"Unknown skill: {skill_name}")
+        raise ValueError(f"Unknown skill: {skill_name}")
 
-    approve(0.2)
-    return SKILL_MAP[skill_name](*args, **kwargs)
+    return SKILL_MAP[skill_name](*args)
