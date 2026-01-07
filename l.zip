@@ -1,0 +1,137 @@
+import os
+import zipfile
+
+BASE = "LedgerPlaybook_Codespace"
+os.makedirs(BASE, exist_ok=True)
+
+# Folders
+folders = [
+    ".github/codespaces",
+    "docs",
+    "server",
+    "agents",
+    "web",
+    "data",
+    "scripts"
+]
+for f in folders:
+    os.makedirs(os.path.join(BASE, f), exist_ok=True)
+
+# Files (all raw strings)
+files = {
+    # Codespaces container
+    ".github/codespaces/devcontainer.json": r"""{
+  "name": "Ledger Systems Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pip install -r server/requirements.txt",
+  "forwardPorts": [8000]
+}""",
+
+    # README
+    "README.md": r"# Ledger Systems — Codespaces Playbook\nOffline training + deployable ledger system.",
+
+    # Server
+    "server/app.py": r"""from flask import Flask, request, jsonify
+from ledger import append_entry
+app = Flask(__name__)
+
+@app.route("/ledger", methods=["POST"])
+def ledger_post():
+    data = request.json
+    return jsonify(append_entry(data)), 201
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
+""",
+    "server/ledger.py": r"""import json
+from datetime import datetime
+
+LEDGER_FILE = "../data/ledger.log"
+
+def append_entry(payload):
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "agent": payload.get("agent"),
+        "message": payload.get("message")
+    }
+    with open(LEDGER_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry) + "\n")
+    return {"status": "recorded", "entry": entry}
+""",
+    "server/requirements.txt": r"flask\nrequests\n",
+
+    # Agents
+    "agents/agent_alpha.py": r"""import requests
+URL = "http://localhost:8000/ledger"
+payload = {"agent": "ALPHA", "message": "Sample entry"}
+r = requests.post(URL, json=payload)
+print(r.json())
+""",
+    "agents/agent_beta.py": r"""import requests
+URL = "http://localhost:8000/ledger"
+payload = {"agent": "BETA", "message": "Another entry"}
+r = requests.post(URL, json=payload)
+print(r.json())
+""",
+
+    # Web
+    "web/index.html": r"<h1>Ledger Viewer Placeholder</h1>",
+    "web/script.js": r"// frontend JS placeholder",
+    "web/styles.css": r"body { font-family:system-ui; background:#0f0f14; color:#eaeaf0; padding:1rem; }",
+
+    # Docs
+    "docs/ARCHITECTURE.md": r"# Architecture\nOverview + folder layout",
+    "docs/AGENTS.md": r"# Agents\nHow agents operate",
+    "docs/LEDGER.md": r"# Ledger Flow\nAppend-only, HTTP POST",
+
+    # Training MHTML
+    "training_console.html": r"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Ledger Systems — Codespaces Playbook</title></head><body>
+<h1>Offline Training Console</h1>
+<p>Use this MHTML export in Chrome/Edge.</p>
+</body></html>""",
+
+    # Shell scripts (raw)
+    "scripts/deploy.sh": r"""#!/bin/bash
+cd "$(dirname "$0")/.."
+python3 -m venv venv
+source venv/bin/activate
+pip install -r server/requirements.txt
+python3 server/app.py
+""",
+    "scripts/run_agent.sh": r"""#!/bin/bash
+AGENT="$1"
+if [ -z "$AGENT" ]; then
+  echo "Usage: $0 <agent_name.py>"
+  exit 1
+fi
+if [ ! -f "agents/$AGENT" ]; then
+  echo "Agent file not found: agents/$AGENT"
+  exit 1
+fi
+source venv/bin/activate
+python3 "agents/$AGENT"
+"""
+}
+
+# Write files and set +x for scripts
+for path, content in files.items():
+    full_path = os.path.join(BASE, path)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    with open(full_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(content)
+    # Make shell scripts executable
+    if path.startswith("scripts/") and path.endswith(".sh"):
+        os.chmod(full_path, 0o755)  # chmod +x
+
+# Create ZIP
+zip_path = "LedgerPlaybook_Codespace.zip"
+with zipfile.ZipFile(zip_path, "w") as zipf:
+    for root, dirs, fs in os.walk(BASE):
+        for file in fs:
+            file_path = os.path.join(root, file)
+            zipf.write(file_path, arcname=os.path.relpath(file_path, BASE))
+
+print(f"✅ Codespace-ready ZIP created: {zip_path}")
+print("Open training_console.html in Chrome/Edge and export as MHTML for offline training.")
